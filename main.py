@@ -78,8 +78,11 @@ def parse_stat(char, stat):
     if stat.startswith(char) and ':' in stat:
         return stat.split(':')[1]
 
+def parse_command(text):
+    if not text.startswith('/'): return
 
-
+    tmp = text[1:].split()
+    return tmp[0] + "_command", tmp[1:]
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
@@ -117,8 +120,14 @@ class WebhookHandler(webapp2.RequestHandler):
         chat = message['chat']
         self.chat_id = chat['id']
 
+        command, params = parse_command(text)
 
-        if not text.startswith('/'): return #only accept commands
+        if not command: return
+        if not hasattr(self, command): return
+
+        func = getattr(self, command)
+
+        func(params)
 
         if True:
             if text.startswith('/stat '):
@@ -151,6 +160,11 @@ class WebhookHandler(webapp2.RequestHandler):
                     self.reply('http://www.imdb.com%s' % url, preview='false')
             else:
                 self.reply('What command?')
+
+    def card_command(self, text):
+        import pdb
+        pdb.set_trace()
+
 
     def reply(self, msg=None, img=None, preview='true'):
         if self.message_id == "-1":
