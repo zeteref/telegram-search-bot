@@ -41,6 +41,45 @@ def getEnabled(chat_id):
         return es.enabled
     return False
 
+def parse_stats(text):
+    cost = attack = health = None
+    for stat in text.split():
+        if parse_stat('c', stat):
+            cost = parse_stat('c', stat)
+        if parse_stat('a', stat):
+            attack = parse_stat('a', stat)
+        if parse_stat('h', stat):
+            health = parse_stat('h', stat)
+
+    return cost, attack, health
+
+def get_card_url(card_name, locale='enUS'):
+    url = "https://omgvamp-hearthstone-v1.p.mashape.com/cards/search/%s?locale=%s" % (urllib.quote(card_name), locale)
+    req = urllib2.Request(url)
+    req.add_header('X-Mashape-Key','LvOkkIwnJgmshtqGCASAel2whpIFp1xPQkijsnvgf6AWDixiRh')
+    resp = urllib2.urlopen(req)
+
+    content = resp.read()
+
+    for tmp in json.loads(content):
+        if 'img' in tmp and 'collectible' in tmp:
+            if 'flavor' in tmp:
+                return '%s\n\n%s' % (tmp['flavor'], tmp['img'])
+            else:
+                return tmp['img']
+
+def get_movie_ulrs(name):
+    url = 'http://www.imdb.com/find?q=%s&s=tt&ref_=fn_tt_pop' % urllib.quote_plus(name)
+    page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+    return [x.get('href') for x in page('td[class="result_text"] a')]
+
+
+def parse_stat(char, stat):
+    if stat.startswith(char) and ':' in stat:
+        return stat.split(':')[1]
+
+
+
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
@@ -96,39 +135,6 @@ class WebhookHandler(webapp2.RequestHandler):
 
                 logging.info(resp)
 
-        def parse_stats(text):
-            cost = attack = health = None
-            for stat in text.split():
-                if parse_stat('c', stat):
-                    cost = parse_stat('c', stat)
-                if parse_stat('a', stat):
-                    attack = parse_stat('a', stat)
-                if parse_stat('h', stat):
-                    health = parse_stat('h', stat)
-
-            return cost, attack, health
-
-        def get_card_url(card_name, locale='enUS'):
-            url = "https://omgvamp-hearthstone-v1.p.mashape.com/cards/search/%s?locale=%s" % (urllib.quote(card_name), locale)
-            req = urllib2.Request(url)
-            req.add_header('X-Mashape-Key','LvOkkIwnJgmshtqGCASAel2whpIFp1xPQkijsnvgf6AWDixiRh')
-            resp = urllib2.urlopen(req)
-
-            content = resp.read()
-
-            for tmp in json.loads(content):
-                if 'img' in tmp and 'collectible' in tmp:
-                    if 'flavor' in tmp:
-                        return '%s\n\n%s' % (tmp['flavor'], tmp['img'])
-                    else:
-                        return tmp['img']
-
-        def get_movie_ulrs(name):
-            url = 'http://www.imdb.com/find?q=%s&s=tt&ref_=fn_tt_pop' % urllib.quote_plus(name)
-            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            return [x.get('href') for x in page('td[class="result_text"] a')]
-
-
         known = False
         commands = [
                 '/card ',
@@ -175,10 +181,6 @@ class WebhookHandler(webapp2.RequestHandler):
                     reply('http://www.imdb.com%s' % url, preview='false')
             else:
                 reply('What command?')
-
-def parse_stat(char, stat):
-    if stat.startswith(char) and ':' in stat:
-        return stat.split(':')[1]
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
