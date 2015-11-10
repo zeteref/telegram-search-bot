@@ -24,14 +24,11 @@ TOKEN = s['TOKEN']
 
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 
-# ================================
 
 class EnableStatus(ndb.Model):
     # key name: str(chat_id)
     enabled = ndb.BooleanProperty(indexed=False, default=False)
 
-
-# ================================
 
 def setEnabled(chat_id, yes):
     es = EnableStatus.get_or_insert(str(chat_id))
@@ -44,8 +41,6 @@ def getEnabled(chat_id):
         return es.enabled
     return False
 
-
-# ================================
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
@@ -65,7 +60,6 @@ class SetWebhookHandler(webapp2.RequestHandler):
         url = self.request.get('url')
         if url:
             self.response.write(json.dumps(json.load(urllib2.urlopen(BASE_URL + 'setWebhook', urllib.urlencode({'url': url})))))
-
 
 class WebhookHandler(webapp2.RequestHandler):
     def post(self):
@@ -109,7 +103,6 @@ class WebhookHandler(webapp2.RequestHandler):
                 if parse_stat('h', stat):
                     health = parse_stat('h', stat)
 
-            print cost, attack, health
             return cost, attack, health
 
         def get_card_url(card_name, locale='enUS'):
@@ -184,8 +177,6 @@ class WebhookHandler(webapp2.RequestHandler):
 def parse_stat(char, stat):
     if stat.startswith(char) and ':' in stat:
         return stat.split(':')[1]
-
-# $('a[href^="/card"] img')
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
