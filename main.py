@@ -9,20 +9,20 @@ from pyquery import PyQuery as pq
 
 # for sending images
 from PIL import Image
-import multipart
 
 # standard app engine imports
-try:
-    from google.appengine.api import urlfetch
-    from google.appengine.ext import ndb
-    import webapp2
-except:
-    pass
 
-TOKEN = '139293654:AAExsR0S-0ezGxJwPLgqO4cKld_JDA9tQBk'
+from google.appengine.api import urlfetch
+from google.appengine.ext import ndb
+import webapp2
+
+f = open('secret.json')
+s = json.loads(f.read())
+f.close()
+
+TOKEN = s['TOKEN']
 
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
-
 
 # ================================
 
@@ -96,18 +96,7 @@ class WebhookHandler(webapp2.RequestHandler):
                     'enable_web_page_preview': preview,
                     'reply_to_message_id': str(message_id),
                 })).read()
-            elif img:
-                resp = multipart.post_multipart(BASE_URL + 'sendPhoto', [
-                    ('chat_id', str(chat_id)),
-                    ('reply_to_message_id', str(message_id)),
-                ], [
-                    ('photo', 'image.jpg', img),
-                ])
-            else:
-                logging.error('no msg or img specified')
-                resp = None
 
-            logging.info('send response:')
             logging.info(resp)
 
         def parse_stats(text):
