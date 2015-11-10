@@ -105,27 +105,27 @@ class SetWebhookHandler(webapp2.RequestHandler):
 
 class WebhookHandler(webapp2.RequestHandler):
     def post(self):
-        urlfetch.set_default_fetch_deadline(60)
-        body = json.loads(self.request.body)
-        logging.info('request body:')
-        logging.info(body)
-        self.response.write(json.dumps(body))
-
-        update_id = body['update_id']
-        message = body['message']
-        self.message_id = message.get('message_id')
-        date = message.get('date')
-        text = message.get('text')
-        fr = message.get('from')
-        chat = message['chat']
-        self.chat_id = chat['id']
-
-        command, params = parse_command(text)
-
-        if not command: return
-        if not hasattr(self, command): return
-
         try:
+            urlfetch.set_default_fetch_deadline(60)
+            body = json.loads(self.request.body)
+            logging.info('request body:')
+            logging.info(body)
+            self.response.write(json.dumps(body))
+
+            update_id = body['update_id']
+            message = body['message']
+            self.message_id = message.get('message_id')
+            date = message.get('date')
+            text = message.get('text')
+            fr = message.get('from')
+            chat = message['chat']
+            self.chat_id = chat['id']
+
+            command, params = parse_command(text)
+
+            if not command: return
+            if not hasattr(self, command): return
+
             func = getattr(self, command)
             func(params)
         except:
@@ -166,9 +166,16 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def desc_command(self, params):
         try:
-            self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(params))
+            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
+            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+            cells = page('.visual-details-cell h3 a')
+            ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
+            if len(ret) == 1:
+                self.card_command(params)
+                return
+            self.reply('\n'.join(ret[:5]))
         except:
-            self.reply('Unable to cards for %s' % params)
+            self.reply('Unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
 
     def reply(self, msg=None, img=None, preview='true'):
