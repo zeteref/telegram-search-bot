@@ -19,8 +19,8 @@ def main():
     #print_response('/card horse')
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
-    print_response('/desc spider')
-    #print_response('/stat c:3 a:3 h:3')
+    #print_response('/desc spider')
+    print_response('/stat c:3 a:3 h:3')
 
 
 if __name__ == '__main__':

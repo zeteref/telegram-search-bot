@@ -142,8 +142,14 @@ class WebhookHandler(webapp2.RequestHandler):
     def stat_command(self, params):
         try:
             cost, attack, health = parse_stats(params)
-            url = "http://www.hearthhead.com/cards=?filter=stat-cost-min=%s;stat-cost-max=%s;stat-attack-min=%s;stat-attack-max=%s;stat-health-min=%s;stat-health-max=%s"
-            self.reply(url % (cost, cost, attack, attack, health, health))
+            url = "http://www.hearthpwn.com/cards?filter-premium=1&filter-attack-val=%s&filter-attack-op=%s&filter-cost-val=%s&filter-cost-op=%s&filter-health-val=%s&filter-health-op=%s"
+            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+            cells = page('.visual-details-cell h3 a')
+            ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
+            if len(ret) == 1:
+                self.card_command(params)
+                return
+            self.reply('\n'.join(ret[:5]))
         except:
             self.reply('unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
