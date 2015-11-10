@@ -138,9 +138,13 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception("Exception was thrown")
 
     def stat_command(self, params):
-        cost, attack, health = parse_stats(params)
-        url = "http://www.hearthhead.com/cards=?filter=stat-cost-min=%s;stat-cost-max=%s;stat-attack-min=%s;stat-attack-max=%s;stat-health-min=%s;stat-health-max=%s"
-        self.reply(url % (cost, cost, attack, attack, health, health))
+        try:
+            cost, attack, health = parse_stats(params)
+            url = "http://www.hearthhead.com/cards=?filter=stat-cost-min=%s;stat-cost-max=%s;stat-attack-min=%s;stat-attack-max=%s;stat-health-min=%s;stat-health-max=%s"
+            self.reply(url % (cost, cost, attack, attack, health, health))
+        except:
+            self.reply('unable to find cards for %s' % params)
+            logging.exception('Exception was thrown')
 
     def karta_command(self, card_name):
         try:
@@ -151,11 +155,19 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception("Exception was thrown")
 
     def movie_command(self, params):
-        for url in get_movie_ulrs(query)[:3]:
-            self.reply('http://www.imdb.com%s' % url, preview='false')
+        try:
+            for url in get_movie_ulrs(params)[:3]:
+                self.reply('http://www.imdb.com%s' % url, preview='false')
+        except:
+            self.reply('Unable to find movie for %s' % params)
+            logging.exception('Exception was thrown')
 
     def desc_command(self, params):
-        self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
+        try:
+            self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(params))
+        except:
+            self.reply('Unable to cards for %s' % params)
+            logging.exception('Exception was thrown')
 
     def reply(self, msg=None, img=None, preview='true'):
         if self.message_id == "-1": # for testing
