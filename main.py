@@ -83,7 +83,10 @@ class WebhookHandler(webapp2.RequestHandler):
             return
 
         def reply(msg=None, img=None, preview='true'):
-            if msg:
+            if message_id == "-1":
+                self.response.write("\n")
+                self.response.write(msg)
+            elif msg:
                 resp = urllib2.urlopen(BASE_URL + 'sendMessage', urllib.urlencode({
                     'chat_id': str(chat_id),
                     'text': msg.encode('utf-8'),
@@ -91,7 +94,7 @@ class WebhookHandler(webapp2.RequestHandler):
                     'reply_to_message_id': str(message_id),
                 })).read()
 
-            logging.info(resp)
+                logging.info(resp)
 
         def parse_stats(text):
             cost = attack = health = None
@@ -106,7 +109,6 @@ class WebhookHandler(webapp2.RequestHandler):
             return cost, attack, health
 
         def get_card_url(card_name, locale='enUS'):
-
             url = "https://omgvamp-hearthstone-v1.p.mashape.com/cards/search/%s?locale=%s" % (urllib.quote(card_name), locale)
             req = urllib2.Request(url)
             req.add_header('X-Mashape-Key','LvOkkIwnJgmshtqGCASAel2whpIFp1xPQkijsnvgf6AWDixiRh')
