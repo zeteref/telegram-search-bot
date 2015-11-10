@@ -82,7 +82,7 @@ def parse_command(text):
     if not text.startswith('/'): return
 
     tmp = text[1:].split()
-    return tmp[0] + "_command", tmp[1:]
+    return tmp[0] + "_command", ' '.join(tmp[1:])
 
 class MeHandler(webapp2.RequestHandler):
     def get(self):
@@ -129,45 +129,36 @@ class WebhookHandler(webapp2.RequestHandler):
 
         func(params)
 
-        if True:
-            if text.startswith('/stat '):
-                cost, attack, health = parse_stats(text)
-                url = "http://www.hearthhead.com/cards=?filter=stat-cost-min=%s;stat-cost-max=%s;stat-attack-min=%s;stat-attack-max=%s;stat-health-min=%s;stat-health-max=%s"
-                self.reply(url % (cost, cost, attack, attack, health, health))
-            elif text.startswith('/card '):
-                card_name = text[6:]
-                try:
-                    url = get_card_url(card_name)
-                    self.reply(url)
-                except:
-                    self.reply('unable to find image for card %s' % card_name)
-                    logging.exception("Exception was thrown")
-            elif text.startswith('/karta '):
-                card_name = text[7:]
-                try:
-                    url = get_card_url(card_name, 'plPL')
-                    self.reply(url)
-                except:
-                    self.reply('unable to find image for card %s' % card_name)
-                    logging.exception("Exception was thrown")
-            elif text.startswith('/desc '):
-                self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
-            elif text.startswith('/opis '):
-                self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
-            elif text.startswith('/movie '):
-                query = text[7:]
-                for url in get_movie_ulrs(query)[:3]:
-                    self.reply('http://www.imdb.com%s' % url, preview='false')
-            else:
-                self.reply('What command?')
+    def card_command(self, card_name):
+        try:
+            url = get_card_url(card_name)
+            self.reply(url)
+        except:
+            self.reply('unable to find image for card %s' % card_name)
+            logging.exception("Exception was thrown")
 
-    def card_command(self, text):
-        import pdb
-        pdb.set_trace()
+    def stat_command(self, params):
+        cost, attack, health = parse_stats(params)
+        url = "http://www.hearthhead.com/cards=?filter=stat-cost-min=%s;stat-cost-max=%s;stat-attack-min=%s;stat-attack-max=%s;stat-health-min=%s;stat-health-max=%s"
+        self.reply(url % (cost, cost, attack, attack, health, health))
 
+    def karta_command(self, card_name):
+        try:
+            url = get_card_url(card_name, 'plPL')
+            self.reply(url)
+        except:
+            self.reply('unable to find image for card %s' % card_name)
+            logging.exception("Exception was thrown")
+
+    def movie_command(self, params):
+        for url in get_movie_ulrs(query)[:3]:
+            self.reply('http://www.imdb.com%s' % url, preview='false')
+
+    def desc_command(self, params):
+        self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
 
     def reply(self, msg=None, img=None, preview='true'):
-        if self.message_id == "-1":
+        if self.message_id == "-1": # for testing
             self.response.write("\n")
             self.response.write(msg)
         elif msg:
@@ -179,8 +170,6 @@ class WebhookHandler(webapp2.RequestHandler):
             })).read()
 
             logging.info(resp)
-
-
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
