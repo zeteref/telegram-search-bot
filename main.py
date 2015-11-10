@@ -125,9 +125,11 @@ class WebhookHandler(webapp2.RequestHandler):
         if not command: return
         if not hasattr(self, command): return
 
-        func = getattr(self, command)
-
-        func(params)
+        try:
+            func = getattr(self, command)
+            func(params)
+        except:
+            logging.exception('Exception was thrown')
 
     def card_command(self, card_name):
         try:
