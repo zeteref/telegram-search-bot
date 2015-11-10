@@ -110,77 +110,63 @@ class WebhookHandler(webapp2.RequestHandler):
 
         update_id = body['update_id']
         message = body['message']
-        message_id = message.get('message_id')
+        self.message_id = message.get('message_id')
         date = message.get('date')
         text = message.get('text')
         fr = message.get('from')
         chat = message['chat']
-        chat_id = chat['id']
+        self.chat_id = chat['id']
 
-        if not text:
-            logging.info('no text')
-            return
 
-        def reply(msg=None, img=None, preview='true'):
-            if message_id == "-1":
-                self.response.write("\n")
-                self.response.write(msg)
-            elif msg:
-                resp = urllib2.urlopen(BASE_URL + 'sendMessage', urllib.urlencode({
-                    'chat_id': str(chat_id),
-                    'text': msg.encode('utf-8'),
-                    'enable_web_page_preview': preview,
-                    'reply_to_message_id': str(message_id),
-                })).read()
+        if not text.startswith('/'): return #only accept commands
 
-                logging.info(resp)
-
-        known = False
-        commands = [
-                '/card ',
-                '/karta ',
-                '/desc ',
-                '/stat ',
-                '/opis ',
-                '/movie'
-        ]
-
-        for x in commands:
-            if text.startswith(x):
-                known = True
-                break
-            
-        if known:
+        if True:
             if text.startswith('/stat '):
                 cost, attack, health = parse_stats(text)
                 url = "http://www.hearthhead.com/cards=?filter=stat-cost-min=%s;stat-cost-max=%s;stat-attack-min=%s;stat-attack-max=%s;stat-health-min=%s;stat-health-max=%s"
-                reply(url % (cost, cost, attack, attack, health, health))
+                self.reply(url % (cost, cost, attack, attack, health, health))
             elif text.startswith('/card '):
                 card_name = text[6:]
                 try:
                     url = get_card_url(card_name)
-                    reply(url)
+                    self.reply(url)
                 except:
-                    reply('unable to find image for card %s' % card_name)
+                    self.reply('unable to find image for card %s' % card_name)
                     logging.exception("Exception was thrown")
             elif text.startswith('/karta '):
                 card_name = text[7:]
                 try:
                     url = get_card_url(card_name, 'plPL')
-                    reply(url)
+                    self.reply(url)
                 except:
-                    reply('unable to find image for card %s' % card_name)
+                    self.reply('unable to find image for card %s' % card_name)
                     logging.exception("Exception was thrown")
             elif text.startswith('/desc '):
-                reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
+                self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
             elif text.startswith('/opis '):
-                reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
+                self.reply('http://www.hearthhead.com/cards=?filter=na=%s;ex=on' % urllib.quote_plus(text[6:]))
             elif text.startswith('/movie '):
                 query = text[7:]
                 for url in get_movie_ulrs(query)[:3]:
-                    reply('http://www.imdb.com%s' % url, preview='false')
+                    self.reply('http://www.imdb.com%s' % url, preview='false')
             else:
-                reply('What command?')
+                self.reply('What command?')
+
+    def reply(self, msg=None, img=None, preview='true'):
+        if self.message_id == "-1":
+            self.response.write("\n")
+            self.response.write(msg)
+        elif msg:
+            resp = urllib2.urlopen(BASE_URL + 'sendMessage', urllib.urlencode({
+                'chat_id': str(self.chat_id),
+                'text': msg.encode('utf-8'),
+                'enable_web_page_preview': preview,
+                'reply_to_message_id': str(self.message_id),
+            })).read()
+
+            logging.info(resp)
+
+
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
