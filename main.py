@@ -131,6 +131,13 @@ class WebhookHandler(webapp2.RequestHandler):
         except:
             logging.exception('Exception was thrown')
 
+    def show_first(self, page):
+        self.reply("%s\n%s\n" % (
+                page('.card-flavor-listing-text').text(),
+                page('.hscard-static').attr('src')
+            )
+        )
+
     def card_command(self, card_name):
         try:
             url = get_card_url(card_name)
@@ -149,11 +156,7 @@ class WebhookHandler(webapp2.RequestHandler):
             cells = page('.visual-details-cell h3 a')
             ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
             if len(ret) == 1:
-                self.reply("%s\n%s" % (
-                        page('.card-flavor-listing-text').text(),
-                        page('.hscard-static').attr('src')
-                    )
-                )
+                self.show_first(page)
                 return
             self.reply('\n'.join(ret[:5]))
         except:
@@ -183,7 +186,7 @@ class WebhookHandler(webapp2.RequestHandler):
             cells = page('.visual-details-cell h3 a')
             ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
             if len(ret) == 1:
-                self.card_command(params)
+                self.show_first(page)
                 return
             self.reply('\n'.join(ret[:5]))
         except:
