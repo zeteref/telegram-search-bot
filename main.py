@@ -132,7 +132,7 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception('Exception was thrown')
 
     def show_first(self, page):
-        attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')]
+        attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
         self.reply("%s\n%s\n%s\n" % (
                 page('.visual-details-cell:first h3 a').text(),
                 "\n".join(attrs),
