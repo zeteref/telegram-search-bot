@@ -132,7 +132,8 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception('Exception was thrown')
 
     def show_first(self, page):
-        self.reply("%s\n%s\n" % (
+        self.reply("%s\n%s\n%s\n" % (
+                page('.visual-details-cell:first h3 a').text(),
                 page('.card-flavor-listing-text').text(),
                 page('.hscard-static').attr('src')
             )
@@ -185,10 +186,9 @@ class WebhookHandler(webapp2.RequestHandler):
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
             cells = page('.visual-details-cell h3 a')
             ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
-            if len(ret) == 1:
-                self.show_first(page)
-                return
-            self.reply('\n'.join(ret[:5]))
+            self.show_first(page)
+            if(len(ret)>1):
+                self.reply('\n'.join(ret[1:5]))
         except:
             self.reply('Unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
