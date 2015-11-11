@@ -133,12 +133,14 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def show_first(self, page):
         attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
-        self.reply("%s\n%s\n%s\n%s\n" % (
+        self.msg("%s\n\n%s\n%s\n%s\n%s\n" % (
+                "First match:",
                 page('.visual-details-cell:first h3 a').text(),
                 "\n".join(attrs),
                 page('.card-flavor-listing-text:first').text(),
                 page('.hscard-static').attr('src')
-            )
+            ),
+            reply=False
         )
 
     def card_command(self, params):
@@ -191,24 +193,32 @@ class WebhookHandler(webapp2.RequestHandler):
             ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
             self.show_first(page)
             if(len(ret)>1):
-                self.reply('\n'.join(ret[1:5]))
+                m = "Other matches:\n\n"
+                m += '\n'.join(ret[1:5])
+                self.msg(m, reply=False)
         except:
             self.reply('Unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
 
-    def reply(self, msg=None, img=None, preview='true'):
+    def msg(self, msg=None, img=None, preview='true', reply=True):
         if self.message_id == "-1": # for testing
             self.response.write("\n")
             self.response.write(msg)
         elif msg:
-            resp = urllib2.urlopen(BASE_URL + 'sendMessage', urllib.urlencode({
+            params = {
                 'chat_id': str(self.chat_id),
                 'text': msg.encode('utf-8'),
                 'enable_web_page_preview': preview,
-                'reply_to_message_id': str(self.message_id),
-            })).read()
+            }
+            if reply:
+                params['reply_to_message_id'] = str(self.message_id)
 
+            resp = urllib2.urlopen(BASE_URL + 'sendMessage', urllib.urlencode(params)).read()
             logging.info(resp)
+
+
+    def reply(self, msg=None, img=None, preview='true'):
+        self.msg(msg,img,preview)
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
