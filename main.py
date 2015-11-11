@@ -133,9 +133,10 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def show_first(self, page):
         attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
-        self.reply("%s\n%s\n%s\n" % (
+        self.reply("%s\n%s\n%s\n%s\n" % (
                 page('.visual-details-cell:first h3 a').text(),
                 "\n".join(attrs),
+                page('.card-flavor-listing-text:first').text(),
                 page('.hscard-static').attr('src')
             )
         )
