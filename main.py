@@ -141,10 +141,11 @@ class WebhookHandler(webapp2.RequestHandler):
             )
         )
 
-    def card_command(self, card_name):
+    def card_command(self, params):
         try:
-            url = get_card_url(card_name)
-            self.reply(url)
+            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=n&filter-premium=1' % urllib.quote_plus(params)
+            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+            self.show_first(page)
         except:
             self.reply('unable to find image for card %s' % card_name)
             logging.exception("Exception was thrown")
