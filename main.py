@@ -142,12 +142,18 @@ class WebhookHandler(webapp2.RequestHandler):
     def stat_command(self, params):
         try:
             cost, attack, health = parse_stats(params)
-            url = "http://www.hearthpwn.com/cards?filter-premium=1&filter-attack-val=%s&filter-attack-op=%s&filter-cost-val=%s&filter-cost-op=%s&filter-health-val=%s&filter-health-op=%s"
+            url = "http://www.hearthpwn.com/cards?filter-premium=1&filter-attack-val=%s&filter-attack-op=3&filter-cost-val=%s&filter-cost-op=3&filter-health-val=%s&filter-health-op=3"
+            url = url % (attack, cost, health)
+            print url
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
             cells = page('.visual-details-cell h3 a')
             ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
             if len(ret) == 1:
-                self.card_command(params)
+                self.reply("%s\n%s" % (
+                        page('.card-flavor-listing-text').text(),
+                        page('.hscard-static').attr('src')
+                    )
+                )
                 return
             self.reply('\n'.join(ret[:5]))
         except:
