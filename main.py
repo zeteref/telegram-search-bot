@@ -132,9 +132,10 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception('Exception was thrown')
 
     def show_first(self, page):
+        attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')]
         self.reply("%s\n%s\n%s\n" % (
                 page('.visual-details-cell:first h3 a').text(),
-                page('.card-flavor-listing-text:first').text(),
+                "\n".join(attrs),
                 page('.hscard-static').attr('src')
             )
         )
