@@ -143,6 +143,20 @@ class WebhookHandler(webapp2.RequestHandler):
             reply=False
         )
 
+    def show_results(self, url):
+        try:
+            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+            cells = page('.visual-details-cell h3 a')
+            ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
+            self.show_first(page)
+            if len(ret) > 1:
+                m  = "Other matchers:\n\n"
+                m += '\n'.join(ret[1:5])
+                self.reply(m)
+        except:
+            self.reply('unable to find cards for %s' % params)
+            logging.exception('Exception was thrown')
+
     def card_command(self, params):
         try:
             url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=n&filter-premium=1' % urllib.quote_plus(params)
@@ -155,16 +169,8 @@ class WebhookHandler(webapp2.RequestHandler):
     def stat_command(self, params):
         try:
             cost, attack, health = parse_stats(params)
-            url = "http://www.hearthpwn.com/cards?filter-premium=1&filter-attack-val=%s&filter-attack-op=3&filter-cost-val=%s&filter-cost-op=3&filter-health-val=%s&filter-health-op=3"
-            url = url % (attack, cost, health)
-            print url
-            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            cells = page('.visual-details-cell h3 a')
-            ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
-            if len(ret) == 1:
-                self.show_first(page)
-                return
-            self.reply('\n'.join(ret[:5]))
+            url = "http://www.hearthpwn.com/cards?filter-premium=1&filter-attack-val=%s&filter-attack-op=3&filter-cost-val=%s&filter-cost-op=3&filter-health-val=%s&filter-health-op=3" % (attack, cost, health)
+            self.show_results(url)
         except:
             self.reply('unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
@@ -177,6 +183,14 @@ class WebhookHandler(webapp2.RequestHandler):
             self.reply('unable to find image for card %s' % card_name)
             logging.exception("Exception was thrown")
 
+    def desc_command(self, params):
+        try:
+            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
+            self.show_results(url)
+        except:
+            self.reply('Unable to find cards for %s' % params)
+            logging.exception('Exception was thrown')
+
     def movie_command(self, params):
         try:
             for url in get_movie_ulrs(params)[:3]:
@@ -185,22 +199,7 @@ class WebhookHandler(webapp2.RequestHandler):
             self.reply('Unable to find movie for %s' % params)
             logging.exception('Exception was thrown')
 
-    def desc_command(self, params):
-        try:
-            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
-            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            cells = page('.visual-details-cell h3 a')
-            ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
-            self.show_first(page)
-            if(len(ret)>1):
-                m = "Other matches:\n\n"
-                m += '\n'.join(ret[1:5])
-                self.msg(m, reply=False)
-        except:
-            self.reply('Unable to find cards for %s' % params)
-            logging.exception('Exception was thrown')
-
-    def msg(self, msg=None, img=None, preview='true', reply=True):
+    def msg(self, msg=None, img=None, preview='true', reply=False):
         if self.message_id == "-1": # for testing
             self.response.write("\n")
             self.response.write(msg)
@@ -218,7 +217,7 @@ class WebhookHandler(webapp2.RequestHandler):
 
 
     def reply(self, msg=None, img=None, preview='true'):
-        self.msg(msg,img,preview)
+        self.msg(msg,img,preview, reply=True)
 
 app = webapp2.WSGIApplication([
     ('/me', MeHandler),
