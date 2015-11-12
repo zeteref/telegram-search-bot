@@ -25,6 +25,8 @@ TOKEN = s['TOKEN']
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
 
 
+class CardNotFoundError(Exception): pass
+
 class EnableStatus(ndb.Model):
     # key name: str(chat_id)
     enabled = ndb.BooleanProperty(indexed=False, default=False)
@@ -133,6 +135,9 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def show_first(self, page):
         attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
+
+        if not attrs: raise CardNotFoundError()
+
         self.msg("%s\n%s\n%s\n%s\n" % (
                 page('.visual-details-cell:first h3 a').text(),
                 "\n".join(attrs),
@@ -147,14 +152,16 @@ class WebhookHandler(webapp2.RequestHandler):
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
             cells = page('.visual-details-cell h3 a')
             ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
+
             if not ret:
                 self.reply('unable to find cards for %s' % params)
                 return
+
             self.show_first(page)
             if len(ret) > 1:
                 m  = "Other matchers:\n\n"
                 m += '\n'.join(ret[1:5])
-                self.reply(m)
+                self.msg(m)
         except:
             self.reply('unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
@@ -162,9 +169,10 @@ class WebhookHandler(webapp2.RequestHandler):
     def card_command(self, params):
         try:
             url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=n&filter-premium=1' % urllib.quote_plus(params)
-            self.show_results(url)
+            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+            self.show_first(page)
         except:
-            self.reply('unable to find image for card %s' % card_name)
+            self.reply('unable to find image for card %s' % params)
             logging.exception("Exception was thrown")
 
     def stat_command(self, params):
