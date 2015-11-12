@@ -159,7 +159,7 @@ class WebhookHandler(webapp2.RequestHandler):
 
             self.show_first(page)
             if len(ret) > 1:
-                m  = "Other matchers:\n\n"
+                m  = "Other matches:\n\n"
                 m += '\n'.join(ret[1:5])
                 self.msg(m)
         except:
