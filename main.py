@@ -133,8 +133,7 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def show_first(self, page):
         attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
-        self.msg("%s\n\n%s\n%s\n%s\n%s\n" % (
-                "First match:",
+        self.msg("%s\n%s\n%s\n%s\n" % (
                 page('.visual-details-cell:first h3 a').text(),
                 "\n".join(attrs),
                 page('.card-flavor-listing-text:first').text(),
@@ -148,6 +147,9 @@ class WebhookHandler(webapp2.RequestHandler):
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
             cells = page('.visual-details-cell h3 a')
             ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
+            if not ret:
+                self.reply('unable to find cards for %s' % params)
+                return
             self.show_first(page)
             if len(ret) > 1:
                 m  = "Other matchers:\n\n"
@@ -160,8 +162,7 @@ class WebhookHandler(webapp2.RequestHandler):
     def card_command(self, params):
         try:
             url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=n&filter-premium=1' % urllib.quote_plus(params)
-            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            self.show_first(page)
+            self.show_results(url)
         except:
             self.reply('unable to find image for card %s' % card_name)
             logging.exception("Exception was thrown")

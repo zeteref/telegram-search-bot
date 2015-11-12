@@ -16,10 +16,10 @@ def print_response(text):
     print r.text
 
 def main():
-    #print_response('/card horse')
+    #print_response('/card death lo')
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
-    print_response('/desc spider')
+    print_response('/desc death lopa')
     #print_response('/stat c:5 a:5')
 
 
