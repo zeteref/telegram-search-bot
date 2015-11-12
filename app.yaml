@@ -23,4 +23,6 @@ libraries:
   version: latest
 - name: lxml
   version: "2.3"   # or "latest"
+- name: ssl
+  version: latest
 

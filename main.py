@@ -16,6 +16,8 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 import webapp2
 
+import telegram
+
 f = open('secret.json')
 s = json.loads(f.read())
 f.close()
@@ -23,6 +25,8 @@ f.close()
 TOKEN = s['TOKEN']
 
 BASE_URL = 'https://api.telegram.org/bot' + TOKEN + '/'
+
+bot = telegram.Bot(token=TOKEN)
 
 
 class CardNotFoundError(Exception): pass
@@ -138,8 +142,9 @@ class WebhookHandler(webapp2.RequestHandler):
 
         if not attrs: raise CardNotFoundError()
 
-        self.msg("%s\n%s\n%s\n%s\n" % (
+        self.msg("[%s](http://www.hearthpwn.com%s)\n%s\n_%s_\n%s\n" % (
                 page('.visual-details-cell:first h3 a').text(),
+                page('.visual-details-cell:first h3 a').attr('href'),
                 "\n".join(attrs),
                 page('.card-flavor-listing-text:first').text(),
                 page('.hscard-static').attr('src')
@@ -151,7 +156,7 @@ class WebhookHandler(webapp2.RequestHandler):
         try:
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
             cells = page('.visual-details-cell h3 a')
-            ret = ["%s\nhttp://www.hearthpwn.com%s" % (x.text, x.get('href')) for x in cells]
+            ret = ["[%s](http://www.hearthpwn.com%s)" % (x.text, x.get('href')) for x in cells]
 
             if not ret:
                 self.reply('unable to find cards for %s' % params)
@@ -171,6 +176,7 @@ class WebhookHandler(webapp2.RequestHandler):
             url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=n&filter-premium=1' % urllib.quote_plus(params)
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
             self.show_first(page)
+            chat_id="104050882"
         except:
             self.reply('unable to find image for card %s' % params)
             logging.exception("Exception was thrown")
@@ -221,9 +227,16 @@ class WebhookHandler(webapp2.RequestHandler):
             if reply:
                 params['reply_to_message_id'] = str(self.message_id)
 
-            resp = urllib2.urlopen(BASE_URL + 'sendMessage', urllib.urlencode(params)).read()
-            logging.info(resp)
+            bot.sendMessage(chat_id=self.chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
 
+    def photo(self, url):
+        if self.message_id == "-1":
+            self.response.write("\n")
+            self.response.write("photo:%s" % url)
+        else:
+            #bot.sendPhoto(chat_id=self.chat_id, photo=url)
+            #bot.sendPhoto(chat_id=self.chat_id, photo='https://telegram.org/img/t_logo.png')
+            pass
 
     def reply(self, msg=None, img=None, preview='true'):
         self.msg(msg,img,preview, reply=True)
