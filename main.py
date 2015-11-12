@@ -138,18 +138,21 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception('Exception was thrown')
 
     def show_first(self, page):
-        attrs = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
+        tmp = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
+        if not tmp: raise CardNotFoundError()
 
-        if not attrs: raise CardNotFoundError()
+        attrs = []
+        for attr in tmp:
+            a = attr.split(':')
+            attrs.append('*%s*: %s' % (a[0], a[1]))
 
-        self.msg("[%s](http://www.hearthpwn.com%s)\n%s\n_%s_\n%s\n" % (
+        self.msg("[%s](http://www.hearthpwn.com%s)\n\n%s\n_\n%s_\n\n%s\n" % (
                 page('.visual-details-cell:first h3 a').text(),
                 page('.visual-details-cell:first h3 a').attr('href'),
                 "\n".join(attrs),
                 page('.card-flavor-listing-text:first').text(),
                 page('.hscard-static').attr('src')
-            ),
-            reply=False
+            )
         )
 
     def show_results(self, url):
@@ -227,7 +230,8 @@ class WebhookHandler(webapp2.RequestHandler):
             if reply:
                 params['reply_to_message_id'] = str(self.message_id)
 
-            bot.sendMessage(chat_id=self.chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
+            bot.sendMessage(chat_id=self.chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN, disable_web_page_preview=False)
+
 
     def photo(self, url):
         if self.message_id == "-1":
