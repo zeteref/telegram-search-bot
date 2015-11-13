@@ -138,12 +138,14 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception('Exception was thrown')
 
     def show_first(self, page):
+        VALID = ['type', 'rarity', 'set', 'race', 'class']
         tmp = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
         if not tmp: raise CardNotFoundError()
 
         attrs = []
         for attr in tmp:
             a = attr.split(':')
+            if a[0].lower() not in VALID: continue
             attrs.append('*%s*: %s' % (a[0], a[1]))
 
         self.msg("[%s](http://www.hearthpwn.com%s)\n\n%s\n_\n%s_\n\n%s\n" % (
@@ -176,10 +178,8 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def card_command(self, params):
         try:
-            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=n&filter-premium=1' % urllib.quote_plus(params)
-            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            self.show_first(page)
-            chat_id="104050882"
+            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
+            self.show_results(url)
         except:
             self.reply('unable to find image for card %s' % params)
             logging.exception("Exception was thrown")
