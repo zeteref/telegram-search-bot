@@ -196,7 +196,7 @@ class WebhookHandler(webapp2.RequestHandler):
     def karta_command(self, card_name):
         try:
             url = get_card_url(card_name, 'plPL')
-            self.reply(url)
+            bot.sendMessage(chat_id=self.chat_id, text=url)
         except:
             self.reply('unable to find image for card %s' % card_name)
             logging.exception("Exception was thrown")
