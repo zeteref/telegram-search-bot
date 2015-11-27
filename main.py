@@ -129,7 +129,7 @@ class WebhookHandler(webapp2.RequestHandler):
 
             command, params = parse_command(text)
 
-            if text.contains('##'):
+            if '##' in text:
                 self.msg('haha!')
 
             if not command: return
