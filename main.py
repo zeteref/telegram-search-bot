@@ -163,8 +163,14 @@ class WebhookHandler(webapp2.RequestHandler):
         else:
             desc = ""
  
-        self.msg("[%s](http://www.hearthpwn.com%s)\n\n%s\n\n%s\n\n%s\n" % (
-                page('.details h2:first').text(),
+        self.msg("""[%s](%s)
+                
+%s
+                
+%s
+                
+%s""" %     (
+                first('.col-name').text(),
                 url,
                 "\n".join(attrs),
                 desc,
