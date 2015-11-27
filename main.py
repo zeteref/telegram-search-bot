@@ -191,14 +191,6 @@ class WebhookHandler(webapp2.RequestHandler):
             self.reply('unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
 
-    def card_command(self, params):
-        try:
-            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
-            self.show_results(url)
-        except:
-            self.reply('unable to find image for card %s' % params)
-            logging.exception("Exception was thrown")
-
     def stat_command(self, params):
         try:
             cost, attack, health = parse_stats(params)
@@ -216,7 +208,7 @@ class WebhookHandler(webapp2.RequestHandler):
             self.reply('unable to find image for card %s' % card_name)
             logging.exception("Exception was thrown")
 
-    def desc_command(self, params):
+    def card_command(self, params):
         try:
             url = 'http://www.hearthpwn.com/cards?display=1&filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
