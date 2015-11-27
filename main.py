@@ -129,9 +129,6 @@ class WebhookHandler(webapp2.RequestHandler):
 
             command, params = parse_command(text)
 
-            if 'bot test' in text:
-                self.msg('haha!')
-
             if not command: return
             if not hasattr(self, command): return
 

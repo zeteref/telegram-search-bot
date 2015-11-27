@@ -20,6 +20,7 @@ def main():
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
     print_response('/card spider')
+    print_response('bot test')
     #print_response('/stat c:5 a:5')
 
 
