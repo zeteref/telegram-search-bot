@@ -137,9 +137,13 @@ class WebhookHandler(webapp2.RequestHandler):
         except:
             logging.exception('Exception was thrown')
 
-    def show_first(self, page):
+    def show_first(self, first):
         VALID = ['type', 'rarity', 'set', 'race', 'class']
-        tmp = [pq(x).text() for x in page('.visual-details-cell:first ul li')][:-2]
+
+        url = "http://www.hearthpwn.com%s" % first('.col-name a').attr('href')
+        page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+
+        tmp = [pq(x).text() for x in page('.infobox ul li')]
         if not tmp: raise CardNotFoundError()
 
         attrs = []
@@ -148,12 +152,23 @@ class WebhookHandler(webapp2.RequestHandler):
             if a[0].lower() not in VALID: continue
             attrs.append('*%s*: %s' % (a[0], a[1]))
 
-        self.msg("[%s](http://www.hearthpwn.com%s)\n\n%s\n_\n%s_\n\n%s\n" % (
-                page('.visual-details-cell:first h3 a').text(),
-                page('.visual-details-cell:first h3 a').attr('href'),
+            if a[0].lower() == 'type':
+                attrs.append('*Cost*:  %s' %first('.col-cost').text())
+                if a[1].lower().strip() in ['minion', 'weapon']:
+                    attrs.append('*Attack*:  %s' %first('.col-attack').text())
+                    attrs.append('*Health*:  %s' %first('.col-health').text())
+
+        if page('.card-info p').text().strip():
+            desc = "_%s_" % page('.card-info p').text()
+        else:
+            desc = ""
+ 
+        self.msg("[%s](http://www.hearthpwn.com%s)\n\n%s\n\n%s\n\n%s\n" % (
+                page('.details h2:first').text(),
+                url,
                 "\n".join(attrs),
-                page('.card-flavor-listing-text:first').text(),
-                page('.hscard-static').attr('src')
+                desc,
+                page('img.hscard-static').attr('src')
             )
         )
 
@@ -203,8 +218,25 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def desc_command(self, params):
         try:
-            url = 'http://www.hearthpwn.com/cards?filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
-            self.show_results(url)
+            url = 'http://www.hearthpwn.com/cards?display=1&filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
+            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+            cells = page('.visual-details-cell h3 a')
+            trs = [pq(x) for x in page('table.listing tr')[1:]]
+
+            first = trs[0]
+
+            self.show_first(first)
+            
+            for tr in trs[1:4]:
+                self.msg("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (
+                                                                                        tr('.col-name').text(),
+                                                                                        tr('.col-name a').attr('href'),
+                                                                                        tr('.col-cost').text(),
+                                                                                        tr('.col-attack').text(),
+                                                                                        tr('.col-health').text()
+                                                                                       )
+                )
+
         except:
             self.reply('Unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
