@@ -129,7 +129,7 @@ class WebhookHandler(webapp2.RequestHandler):
 
             command, params = parse_command(text)
 
-            if '##' in text:
+            if 'bot test' in text:
                 self.msg('haha!')
 
             if not command: return
@@ -226,8 +226,9 @@ class WebhookHandler(webapp2.RequestHandler):
 
             first = trs[0]
 
+            self.msg(self.format_first(first))
+
             msg = []
-            msg.append(self.format_first(first))
             for tr in trs[1:4]:
                 msg.append("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (
                                                                                                 tr('.col-name').text(),
