@@ -19,7 +19,7 @@ def main():
     #print_response('/card death')
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
-    print_response('/card charged hammer')
+    print_response('/card spider')
     #print_response('/stat c:5 a:5')
 
 

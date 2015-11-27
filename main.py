@@ -129,6 +129,9 @@ class WebhookHandler(webapp2.RequestHandler):
 
             command, params = parse_command(text)
 
+            if text.contains('##'):
+                self.msg('haha!')
+
             if not command: return
             if not hasattr(self, command): return
 
@@ -137,7 +140,7 @@ class WebhookHandler(webapp2.RequestHandler):
         except:
             logging.exception('Exception was thrown')
 
-    def show_first(self, first):
+    def format_first(self, first):
         VALID = ['type', 'rarity', 'set', 'race', 'class']
 
         url = "http://www.hearthpwn.com%s" % first('.col-name a').attr('href')
@@ -163,20 +166,20 @@ class WebhookHandler(webapp2.RequestHandler):
         else:
             desc = ""
  
-        self.msg("""[%s](%s)
+        return """[%s](%s)
                 
 %s
                 
 %s
                 
-%s""" %     (
+%s
+""" %     (
                 first('.col-name').text(),
                 url,
                 "\n".join(attrs),
                 desc,
                 page('img.hscard-static').attr('src')
             )
-        )
 
     def show_results(self, url):
         try:
@@ -223,18 +226,19 @@ class WebhookHandler(webapp2.RequestHandler):
 
             first = trs[0]
 
-            self.show_first(first)
-            
+            msg = []
+            msg.append(self.format_first(first))
             for tr in trs[1:4]:
-                self.msg("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (
-                                                                                        tr('.col-name').text(),
-                                                                                        tr('.col-name a').attr('href'),
-                                                                                        tr('.col-cost').text(),
-                                                                                        tr('.col-attack').text(),
-                                                                                        tr('.col-health').text()
-                                                                                       )
+                msg.append("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (
+                                                                                                tr('.col-name').text(),
+                                                                                                tr('.col-name a').attr('href'),
+                                                                                                tr('.col-cost').text(),
+                                                                                                tr('.col-attack').text(),
+                                                                                                tr('.col-health').text()
+                                                                                               )
                 )
 
+            self.msg("\n".join(msg))
         except:
             self.reply('Unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
