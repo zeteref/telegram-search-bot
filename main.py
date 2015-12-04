@@ -4,6 +4,7 @@ import logging
 import random
 import urllib
 import urllib2
+import cStringIO
 
 from pyquery import PyQuery as pq
 
@@ -178,30 +179,12 @@ class WebhookHandler(webapp2.RequestHandler):
                 page('img.hscard-static').attr('src')
             )
 
-    def show_results(self, url):
-        try:
-            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            cells = page('.visual-details-cell h3 a')
-            ret = ["[%s](http://www.hearthpwn.com%s)" % (x.text, x.get('href')) for x in cells]
-
-            if not ret:
-                self.reply('unable to find cards for %s' % params)
-                return
-
-            self.show_first(page)
-            if len(ret) > 1:
-                m  = "Other matches:\n\n"
-                m += '\n'.join(ret[1:5])
-                self.msg(m)
-        except:
-            self.reply('unable to find cards for %s' % params)
-            logging.exception('Exception was thrown')
-
     def stat_command(self, params):
         try:
             cost, attack, health = parse_stats(params)
-            url = "http://www.hearthpwn.com/cards?filter-premium=1&filter-attack-val=%s&filter-attack-op=3&filter-cost-val=%s&filter-cost-op=3&filter-health-val=%s&filter-health-op=3" % (attack, cost, health)
-            self.show_results(url)
+            url = "http://www.hearthpwn.com/cards?display=1&filter-premium=1&filter-attack-val=%s&filter-attack-op=3&filter-cost-val=%s&filter-cost-op=3&filter-health-val=%s&filter-health-op=3" % (attack, cost, health)
+            page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
+            self.show_results(page)
         except:
             self.reply('unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
@@ -218,28 +201,27 @@ class WebhookHandler(webapp2.RequestHandler):
         try:
             url = 'http://www.hearthpwn.com/cards?display=1&filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            cells = page('.visual-details-cell h3 a')
-            trs = [pq(x) for x in page('table.listing tr')[1:]]
-
-            first = trs[0]
-
-            self.msg(self.format_first(first))
-
-            msg = []
-            for tr in trs[1:4]:
-                msg.append("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (
-                                                                                                tr('.col-name').text(),
-                                                                                                tr('.col-name a').attr('href'),
-                                                                                                tr('.col-cost').text(),
-                                                                                                tr('.col-attack').text(),
-                                                                                                tr('.col-health').text()
-                                                                                               )
-                )
-
-            self.msg("\n".join(msg))
+            self.show_results(page)
         except:
             self.reply('Unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
+
+    def show_results(self, page):
+        cells = page('.visual-details-cell h3 a')
+        trs = [pq(x) for x in page('table.listing tr')[1:]]
+        self.msg(self.format_first(trs[0]))
+
+        msg = []
+        for tr in trs[1:4]:
+            msg.append("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (tr('.col-name').text(),
+                                                                                         tr('.col-name a').attr('href'),
+                                                                                         tr('.col-cost').text(),
+                                                                                         tr('.col-attack').text(),
+                                                                                         tr('.col-health').text())
+                )
+
+            self.msg("\n".join(msg))
+
 
     def movie_command(self, params):
         try:
