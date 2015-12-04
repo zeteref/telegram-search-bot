@@ -220,7 +220,7 @@ class WebhookHandler(webapp2.RequestHandler):
                                                                                          tr('.col-health').text())
                 )
 
-            self.msg("\n".join(msg))
+        self.msg("\n".join(msg))
 
 
     def movie_command(self, params):
