@@ -220,6 +220,8 @@ class WebhookHandler(webapp2.RequestHandler):
                                                                                          tr('.col-health').text())
                 )
 
+        msg.append('\n')
+        msg.append('[Full search](%s)' % page.base_url)
         self.msg("\n".join(msg))
 
 
