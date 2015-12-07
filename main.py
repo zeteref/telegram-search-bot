@@ -212,6 +212,8 @@ class WebhookHandler(webapp2.RequestHandler):
         self.msg(self.format_first(trs[0]))
 
         msg = []
+
+        if trs[1:4]: msg.append('Other matches:\n')
         for tr in trs[1:4]:
             msg.append("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (tr('.col-name').text(),
                                                                                          tr('.col-name a').attr('href'),
@@ -235,7 +237,9 @@ class WebhookHandler(webapp2.RequestHandler):
     def msg(self, msg=None, img=None, preview='true', reply=False):
         if self.message_id == "-1": # for testing
             self.response.write("\n")
+            self.response.write('-----------------------------\n')
             self.response.write(msg)
+            self.response.write('\n-----------------------------')
         elif msg:
             params = {
                 'chat_id': str(self.chat_id),
