@@ -211,8 +211,6 @@ class WebhookHandler(webapp2.RequestHandler):
 
     def c_command(self, params):
         queries = [ alpha.sub('', x).replace('_',' ') for x in params.split() if x.startswith('#') ]
-        self.msg(queries)
-        return
 
         for q in queries:
             self.card_command(q, additional=0)

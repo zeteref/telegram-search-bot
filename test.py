@@ -20,7 +20,7 @@ def main():
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
     #print_response('/card alarm')
-    print_response('/c no to jak #alarm-o-bot czy #deathwing?')
+    print_response('/c szukamy #alarm-0 czy #deathwing?')
     #print_response('bot test')
     #print_response('/stat c:5 a:5')
 
