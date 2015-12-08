@@ -21,7 +21,7 @@ import webapp2
 import telegram
 import re
 
-alpha = re.compile('[^a-zA-Z]')
+alpha = re.compile('[^a-zA-Z-]')
 f = open('secret.json')
 s = json.loads(f.read())
 f.close()
@@ -210,7 +210,10 @@ class WebhookHandler(webapp2.RequestHandler):
             logging.exception('Exception was thrown')
 
     def c_command(self, params):
-        queries = [ alpha.sub('', x) for x in params.split() if x.startswith('#') ]
+        queries = [ alpha.sub('', x).replace('_',' ') for x in params.split() if x.startswith('#') ]
+        self.msg(queries)
+        return
+
         for q in queries:
             self.card_command(q, additional=0)
 
