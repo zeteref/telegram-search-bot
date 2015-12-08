@@ -19,7 +19,8 @@ def main():
     #print_response('/card death')
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
-    print_response('/card alarm')
+    #print_response('/card alarm')
+    print_response('/c no to jak #alarm czy #deathwing?')
     #print_response('bot test')
     #print_response('/stat c:5 a:5')
 

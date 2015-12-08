@@ -5,6 +5,7 @@ import random
 import urllib
 import urllib2
 import cStringIO
+import re
 
 from pyquery import PyQuery as pq
 
@@ -18,7 +19,9 @@ from google.appengine.ext import ndb
 import webapp2
 
 import telegram
+import re
 
+alpha = re.compile('[^a-zA-Z]')
 f = open('secret.json')
 s = json.loads(f.read())
 f.close()
@@ -197,24 +200,29 @@ class WebhookHandler(webapp2.RequestHandler):
             self.reply('unable to find image for card %s' % card_name)
             logging.exception("Exception was thrown")
 
-    def card_command(self, params):
+    def card_command(self, params, additional=3):
         try:
             url = 'http://www.hearthpwn.com/cards?display=1&filter-name=%s&filter-include-card-text=y&filter-premium=1' % urllib.quote_plus(params)
             page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-            self.show_results(page)
+            self.show_results(page, additional)
         except:
             self.reply('Unable to find cards for %s' % params)
             logging.exception('Exception was thrown')
 
-    def show_results(self, page):
+    def c_command(self, params):
+        queries = [ alpha.sub('', x) for x in params.split() if x.startswith('#') ]
+        for q in queries:
+            self.card_command(q, additional=0)
+
+    def show_results(self, page, additional):
         cells = page('.visual-details-cell h3 a')
         trs = [pq(x) for x in page('table.listing tr')[1:]]
         self.msg(self.format_first(trs[0]))
 
         msg = []
 
-        if trs[1:4]: msg.append('Other matches:\n')
-        for tr in trs[1:4]:
+        if trs[1:additional+1]: msg.append('Other matches:\n')
+        for tr in trs[1:additional+1]:
             msg.append("[%s](http://www.hearthpwn.com%s) Cost:%s Attack:%s Health:%s" % (tr('.col-name').text(),
                                                                                          tr('.col-name a').attr('href'),
                                                                                          tr('.col-cost').text(),
