@@ -11,7 +11,7 @@ def format_card_reply(card):
         if attr not in card: continue
         attrs.append('*%s*: %s' % (attr.capitalize(), card[attr]))
 
-    ret = "[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s)\n\n%s" % (card["name"], card["id"], "\n".join(attrs))
+    ret = "[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s.jpg)\n\n%s" % (card["name"], card["id"], "\n".join(attrs))
     if 'text' in card:
         ret += '\n\n_%s_' % card['text']
 
@@ -21,7 +21,7 @@ def format_card_reply(card):
 def format_more_cards(cards):   
     cards = cards[:3]
 
-    return "\n".join([ '[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s)' % (c['name'], c['id']) for c in cards ])
+    return "\n".join([ '[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s.jpg)' % (c['name'], c['id']) for c in cards ])
 
 
 def matches(card, desc='', **kwds):
