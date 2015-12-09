@@ -250,6 +250,10 @@ class WebhookHandler(webapp2.RequestHandler):
         if len(results) > 1:
             self.msg(format_more_cards(results[1:]))
 
+        #custom_keyboard = [[ "/find spider" ]]
+        #reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+        #bot.sendMessage(chat_id=self.chat_id, reply_markup=reply_markup, one_time_keyboard=False)
+
     def movie_command(self, params):
         try:
             for url in get_movie_ulrs(params)[:3]:
@@ -307,11 +311,11 @@ def format_card_reply(card):
 def format_more_cards(cards):   
     cards = cards[:3]
 
-    ret = []
+    ret = ['Other possibilities:\n']
     for c in cards:
-        msg = '[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s) C: %s' % (c['name'], c['id'], c['cost'])
-        if 'attack' in c: msg += ' A: %s' % c['attack']
-        if 'health' in c: msg += ' H: %s' % c['health']
+        msg = '/find *%s* c:%s' % (c['name'], c['cost'])
+        if 'attack' in c: msg += ' a:%s' % c['attack']
+        if 'health' in c: msg += ' h:%s' % c['health']
 
         ret.append(msg)
 
@@ -352,6 +356,7 @@ def find_cards(desc='', **kwds):
 
     cards = json.loads(base64.b64decode(db))
     collectibles = [ x for x in reduce(lambda a,b: a+b, cards.values()) if 'collectible' in x and  x['collectible'] ]
+
     return [ x for x in collectibles if matches(x, desc.lower(), **kwds) ]
 
 app = webapp2.WSGIApplication([
