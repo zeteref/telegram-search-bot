@@ -1,4 +1,5 @@
 import requests
+import sys
 
 def print_response(text):
     r = requests.post('http://localhost:8080/webhook', json={
@@ -16,7 +17,8 @@ def print_response(text):
     print r.text
 
 def main():
-    print_response('/find spider c:3')
+    print_response(' '.join(sys.argv[1:]))
+    #print_response('/find spider %s' % sys.argv[1])
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
     #print_response('/card alarm')

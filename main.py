@@ -244,6 +244,7 @@ class WebhookHandler(webapp2.RequestHandler):
         results = find_cards(desc, **kwds)
         if not results:
             self.msg("Unable to find %s" % params)
+            return
 
         self.msg(format_card_reply(results[0]))
         if len(results) > 1:
@@ -306,7 +307,15 @@ def format_card_reply(card):
 def format_more_cards(cards):   
     cards = cards[:3]
 
-    return "\n".join([ '[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s.png)' % (c['name'], c['id']) for c in cards ])
+    ret = []
+    for c in cards:
+        msg = '[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s) C: %s' % (c['name'], c['id'], c['cost'])
+        if 'attack' in c: msg += ' A: %s' % c['attack']
+        if 'health' in c: msg += ' H: %s' % c['health']
+
+        ret.append(msg)
+
+    return '\n'.join(ret)
 
 
 def matches(card, desc='', **kwds):
@@ -321,8 +330,11 @@ def matches(card, desc='', **kwds):
     return True
 
 def parse_args(args):
-    if ':' in args[0]: desc=''
-    else: desc = args[0]
+    desc = []
+
+    for a in args:
+        if ':' in a: break
+        desc.append(a)
 
     kwds = {}
     for x in args[1:]:
@@ -331,7 +343,7 @@ def parse_args(args):
             kwds[kv[0]] = kv[1]
 
     
-    return desc, kwds
+    return ' '.join(desc), kwds
 
 def find_cards(desc='', **kwds):
     if 'a' in kwds: kwds['attack'] = kwds['a']
