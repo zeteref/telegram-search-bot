@@ -3,6 +3,26 @@ import base64
 import sys
 from cards import db
 
+def format_card_reply(card):
+    VALID = ['type', 'cost', 'attack', 'health', 'rarity', 'set', 'race', 'class']
+
+    attrs = []
+    for attr in VALID:
+        if attr not in card: continue
+        attrs.append('*%s*: %s' % (attr.capitalize(), card[attr]))
+
+    ret = "[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s)\n\n%s" % (card["name"], card["id"], "\n".join(attrs))
+    if 'text' in card:
+        ret += '\n\n_%s_' % card['text']
+
+    return ret
+
+
+def format_more_cards(cards):   
+    cards = cards[:3]
+
+    return "\n".join([ '[%s](http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s)' % (c['name'], c['id']) for c in cards ])
+
 
 def matches(card, desc='', **kwds):
     if 'text' not in card: card['text'] = ''
@@ -42,7 +62,8 @@ def find_cards(desc='', **kwds):
 def main():
     desc, kwds = parse_args(sys.argv[1:])
     results = find_cards(desc, **kwds)
-    print results
+    print format_card_reply(results[0])
+    print format_more_cards(results[1:])
 
 if __name__ == '__main__':
     main()
