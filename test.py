@@ -16,7 +16,7 @@ def print_response(text):
     print r.text
 
 def main():
-    print_response('/find spider')
+    print_response('/find spider c:3')
     #print_response('/movie the host 2013')
     #print_response('/karta psy')
     #print_response('/card alarm')

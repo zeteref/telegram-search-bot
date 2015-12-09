@@ -240,10 +240,14 @@ class WebhookHandler(webapp2.RequestHandler):
     def find_command(self, params):
         if not params: return
 
-        desc, kwds = parse_args(params)
+        desc, kwds = parse_args(params.split())
         results = find_cards(desc, **kwds)
+        if not results:
+            self.msg("Unable to find %s" % params)
+
         self.msg(format_card_reply(results[0]))
-        self.msg(format_more_cards(results[1:]))
+        if len(results) > 1:
+            self.msg(format_more_cards(results[1:]))
 
     def movie_command(self, params):
         try:
