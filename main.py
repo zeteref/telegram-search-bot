@@ -156,7 +156,7 @@ class WebhookHandler(webapp2.RequestHandler):
         queries = [ alpha.sub('', x).replace('_',' ') for x in params.split() if x.startswith('#') ]
 
         for q in queries:
-            self.card_command(q, additional=0)
+            self.card_command(q)
 
         msg.append('[Full search](%s)' % page.base_url)
         self.msg("\n".join(msg))
