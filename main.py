@@ -24,7 +24,7 @@ from google.appengine.ext import ndb
 
 from cards import db, db_pl
 
-alpha = re.compile('[^a-zA-Z-]')
+alpha = re.compile('[^a-zA-Z-_]')
 f = open('secret.json')
 s = json.loads(f.read())
 f.close()
@@ -152,9 +152,6 @@ class WebhookHandler(webapp2.RequestHandler):
 
         for q in queries:
             self.card_command(q)
-
-        msg.append('[Full search](%s)' % page.base_url)
-        self.msg("\n".join(msg))
 
     def card_command(self, params, locale="en_EN"):
         if not params: return
