@@ -243,14 +243,21 @@ def format_more_cards(cards):
 
 def matches(card, desc='', **kwds):
     if 'text' not in card: card['text'] = ''
+    matched = False
 
     if desc:
-        if desc not in card['name'].lower() and desc not in card['text'].lower(): return False
+        if desc not in card['name'].lower() and desc not in card['text'].lower(): 
+            return False
+        else:
+            matched = True
 
     for k, v in kwds.iteritems():
-        if k in card and v.lower() not in str(card[k]).lower(): return False
+        if k not in card: continue
 
-    return True
+        if v.lower() not in str(card[k]).lower(): return False
+        else: matched = True
+
+    return matched
 
 def parse_args(args):
     desc = []
