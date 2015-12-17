@@ -341,11 +341,10 @@ def parse_args(args):
         desc.append(a)
 
     kwds = {}
-    for x in args[1:]:
+    for x in args:
         if ':' in x:
             kv = x.split(':')
             kwds[kv[0]] = kv[1]
-
     
     return ' '.join(desc), kwds
 
