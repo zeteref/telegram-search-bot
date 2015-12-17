@@ -8,22 +8,24 @@ import cStringIO
 
 from pyquery import PyQuery as pq
 
-def fetch_image(searchTerm):
-    searchTerm = searchTerm.replace(' ','%20')
+def fetch_image(searchTerm, safe=True):
+    searchTerm = urllib.quote_plus(searchTerm)
 
-    url = ('http://www.bing.com/images/search?q=naked+asian')
+    url = ('http://www.bing.com/images/search?q=%s' % searchTerm)
+
     opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', 'SRCHHPGUSR=CW=1587&CH=371&DPR=1&ADLT=OFF'))
+    if not safe:
+        opener.addheaders.append(('Cookie', 'SRCHHPGUSR=CW=1587&CH=371&DPR=1&ADLT=OFF'))
+
     page = opener.open(url)
     xhtml = page.read()
-
     page = pq(xhtml).xhtml_to_html()
 
-    for x in page('.thumb'): 
-        print x.attrib['href']
+    links = [x.attrib['href'] for x in page('.thumb')]
+    print links
 
 def main():
-    fetch_image('cosplay')
+    fetch_image('kitty')
 
 if __name__ == '__main__':
     main()
