@@ -22,7 +22,7 @@ from PIL import Image
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 
-from cards import db
+from cards import db, db_pl
 
 alpha = re.compile('[^a-zA-Z-]')
 f = open('secret.json')
@@ -144,13 +144,8 @@ class WebhookHandler(webapp2.RequestHandler):
         except:
             logging.exception('Exception was thrown')
 
-    def karta_command(self, card_name):
-        try:
-            url = get_card_url(card_name, 'plPL')
-            bot.sendMessage(chat_id=self.chat_id, text=url)
-        except:
-            self.reply('unable to find image for card %s' % card_name)
-            logging.exception("Exception was thrown")
+    def karta_command(self, params):
+        self.card_command(params, locale="pl_PL")
 
     def c_command(self, params):
         queries = [ alpha.sub('', x).replace('_',' ') for x in params.split() if x.startswith('#') ]
@@ -161,11 +156,11 @@ class WebhookHandler(webapp2.RequestHandler):
         msg.append('[Full search](%s)' % page.base_url)
         self.msg("\n".join(msg))
 
-    def card_command(self, params):
+    def card_command(self, params, locale="en_EN"):
         if not params: return
 
         desc, kwds = parse_args(params.split())
-        results = find_cards(desc, **kwds)
+        results = find_cards(desc, locale=locale, **kwds)
         if not results:
             self.msg("Unable to find %s" % params)
             return
@@ -272,12 +267,16 @@ def parse_args(args):
     
     return ' '.join(desc), kwds
 
-def find_cards(desc='', **kwds):
+def find_cards(desc='', locale="en_EN", **kwds):
     if 'a' in kwds: kwds['attack'] = kwds['a']
     if 'h' in kwds: kwds['health'] = kwds['h']
     if 'c' in kwds: kwds['cost'] = kwds['c']
 
-    cards = json.loads(base64.b64decode(db))
+    if locale == "en_EN":
+        cards = json.loads(base64.b64decode(db))
+    else:
+        cards = json.loads(base64.b64decode(db_pl))
+
     collectibles = [ x for x in reduce(lambda a,b: a+b, cards.values()) if 'collectible' in x and  x['collectible'] ]
 
     return [ x for x in collectibles if matches(x, desc.lower(), **kwds) ]
