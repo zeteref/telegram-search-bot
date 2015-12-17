@@ -19,7 +19,6 @@ def fetch_image(searchTerm):
 
     page = pq(xhtml).xhtml_to_html()
 
-    print page('.thumb')
     for x in page('.thumb'): 
         print x.attrib['href']
 
