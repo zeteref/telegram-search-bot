@@ -193,7 +193,7 @@ class WebhookHandler(webapp2.RequestHandler):
             if reply:
                 params['reply_to_message_id'] = str(self.message_id)
 
-            bot.sendMessage(chat_id=self.chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN, disable_web_page_preview=False)
+            bot.sendMessage(chat_id=self.chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN, enable_web_page_preview=True)
 
 
     def photo(self, url):
@@ -229,7 +229,7 @@ def format_more_cards(cards):
 
     ret = ['Other possibilities:\n']
     for c in cards:
-        msg = '/find *%s* c:%s' % (c['name'], c['cost'])
+        msg = '/card *%s* c:%s' % (c['name'], c['cost'])
         if 'attack' in c: msg += ' a:%s' % c['attack']
         if 'health' in c: msg += ' h:%s' % c['health']
 
