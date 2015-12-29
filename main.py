@@ -24,7 +24,7 @@ urlfetch.set_default_fetch_deadline(45)
 
 from cards import db, db_pl
 
-alpha = re.compile('[^a-zA-Z-_]')
+alpha = re.compile("""[^a-zA-Z-_']""")
 f = open('secret.json')
 s = json.loads(f.read())
 f.close()
@@ -80,12 +80,6 @@ def get_card_url(card_name, locale='enUS'):
                 return '%s\n\n%s' % (tmp['flavor'], tmp['img'])
             else:
                 return tmp['img']
-
-def get_movie_ulrs(name):
-    url = 'http://www.imdb.com/find?q=%s&s=tt&ref_=fn_tt_pop' % urllib.quote_plus(name)
-    page = pq(url=url, opener=lambda url, **kw: urllib.urlopen(url).read())
-    return [x.get('href') for x in page('td[class="result_text"] a')]
-
 
 def parse_stat(char, stat):
     if stat.startswith(char) and ':' in stat:
@@ -147,6 +141,9 @@ class WebhookHandler(webapp2.RequestHandler):
     def karta_command(self, params):
         self.card_command(params, locale="pl_PL")
 
+    def find_command(self, params):
+        self.card_command(params)
+
     def c_command(self, params):
         queries = [ alpha.sub('', x).replace('_',' ') for x in params.split() if x.startswith('#') ]
 
@@ -169,14 +166,6 @@ class WebhookHandler(webapp2.RequestHandler):
         #custom_keyboard = [[ "/find spider" ]]
         #reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         #bot.sendMessage(chat_id=self.chat_id, reply_markup=reply_markup, one_time_keyboard=False)
-
-    def movie_command(self, params):
-        try:
-            for url in get_movie_ulrs(params)[:3]:
-                self.reply('http://www.imdb.com%s' % url, preview='false')
-        except:
-            self.reply('Unable to find movie for %s' % params)
-            logging.exception('Exception was thrown')
 
     def msg(self, msg=None, img=None, preview='true', reply=False):
         if self.message_id == "-1": # for testing
