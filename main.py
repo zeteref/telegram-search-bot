@@ -14,13 +14,13 @@ import re
 
 from pyquery import PyQuery as pq
 
-# for sending images
-from PIL import Image
-
 # standard app engine imports
 
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
+
+from google.appengine.api import urlfetch
+urlfetch.set_default_fetch_deadline(45)
 
 from cards import db, db_pl
 

@@ -20,16 +20,15 @@
 """This module contains methods to make POST and GET requests"""
 
 import json
-import socket
-from ssl import SSLError
 
 try:
+    from urllib.parse import urlencode
     from urllib.request import urlopen, urlretrieve, Request
-    from urllib.error import HTTPError
+    from urllib.error import HTTPError, URLError
 except ImportError:
-    from urllib import urlretrieve
+    from urllib import urlencode, urlretrieve
     from urllib2 import urlopen, Request
-    from urllib2 import HTTPError
+    from urllib2 import HTTPError, URLError
 
 from telegram import (InputFile, TelegramError)
 
@@ -68,29 +67,17 @@ def get(url):
 
 
 def post(url,
-         data,
-         network_delay=2.):
+         data):
     """Request an URL.
     Args:
       url:
         The web location we want to retrieve.
       data:
         A dict of (str, unicode) key/value pairs.
-      network_delay:
-        Additional timeout in seconds to allow the response from Telegram to
-        take some time.
 
     Returns:
       A JSON object.
     """
-
-    # Add time to the timeout of urlopen to allow data to be transferred over
-    # the network.
-    if 'timeout' in data:
-        timeout = data['timeout'] + network_delay
-    else:
-        timeout = None
-
     try:
         if InputFile.is_inputfile(data):
             data = InputFile(data)
@@ -103,7 +90,7 @@ def post(url,
                               data=data.encode(),
                               headers={'Content-Type': 'application/json'})
 
-        result = urlopen(request, timeout=timeout).read()
+        result = urlopen(request).read()
     except HTTPError as error:
         if error.getcode() == 403:
             raise TelegramError('Unauthorized')
@@ -112,11 +99,7 @@ def post(url,
 
         message = _parse(error.read())
         raise TelegramError(message)
-    except (SSLError, socket.timeout) as error:
-        if "operation timed out" in str(error):
-            raise TelegramError("Timed out")
 
-        raise TelegramError(str(error))
     return _parse(result)
 
 
