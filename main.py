@@ -86,7 +86,7 @@ def parse_stat(char, stat):
         return stat.split(':')[1]
 
 def parse_command(text):
-    if not text.startswith('/'): return
+    if not text or not text.startswith('/'): return None, None
 
     tmp = text[1:].split()
     return tmp[0] + "_command", ' '.join(tmp[1:])
@@ -130,11 +130,13 @@ class WebhookHandler(webapp2.RequestHandler):
 
             command, params = parse_command(text)
 
-            if not command: return
-            if not hasattr(self, command): return
+            if not command: 
+                self.inline(text)
+            else:
+                if not hasattr(self, command): return
 
-            func = getattr(self, command)
-            func(params)
+                func = getattr(self, command)
+                func(params)
         except:
             logging.exception('Exception was thrown')
 
@@ -163,9 +165,18 @@ class WebhookHandler(webapp2.RequestHandler):
         if len(results) > 1:
             self.msg(format_more_cards(results[1:]))
 
-        #custom_keyboard = [[ "/find spider" ]]
-        #reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-        #bot.sendMessage(chat_id=self.chat_id, reply_markup=reply_markup, one_time_keyboard=False)
+    def inline(self, params, locale="en_EN"):
+        desc, kwds = parse_args(params.split())
+        results = find_cards(desc, locale=locale, **kwds)
+        if not results:
+            self.msg("Unable to find %s" % params)
+            return
+
+        ret = []
+        for card in results[:20]:
+            ret += ["http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s.png" % (card["id"])]
+
+        self.msg("\n".join(ret))
 
     def msg(self, msg=None, img=None, preview='true', reply=False):
         if self.message_id == "-1": # for testing
