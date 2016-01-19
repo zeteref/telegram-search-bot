@@ -117,28 +117,60 @@ class WebhookHandler(webapp2.RequestHandler):
             body = json.loads(self.request.body)
             logging.info('request body:')
             logging.info(body)
-            self.response.write(json.dumps(body))
 
-            update_id = body['update_id']
-            message = body['message']
-            self.message_id = message.get('message_id')
-            date = message.get('date')
-            text = message.get('text')
-            fr = message.get('from')
-            chat = message['chat']
-            self.chat_id = chat['id']
+            if 'message' in body: self.on_message(body)
 
-            command, params = parse_command(text)
-
-            if not command: 
-                self.inline(text)
-            else:
-                if not hasattr(self, command): return
-
-                func = getattr(self, command)
-                func(params)
+            if 'inline_query' in body: self.on_inline_query(body)
+                
         except:
             logging.exception('Exception was thrown')
+
+    def on_message(self ,body):
+        update_id = body['update_id']
+        message = body['message']
+        self.message_id = message.get('message_id')
+        date = message.get('date')
+        text = message.get('text')
+        fr = message.get('from')
+        chat = message['chat']
+        self.chat_id = chat['id']
+
+        command, params = parse_command(text)
+
+        if not command: return 
+
+        if not hasattr(self, command): return
+
+        func = getattr(self, command)
+        func(params)
+
+    def on_inline_query(self, body):
+        iquery = body['inline_query']
+
+        cards = find_cards(iquery['query'])
+
+        ret = {'inline_query_id':iquery['id']}
+        
+        results = []
+        for card in cards:
+            results += [
+                            {
+                                'type':'photo', 
+                                'id': card['id'], 
+                                'photo_url':'http://wow.zamimg.com/images/hearthstone/cards/enus/medium/%s.png' % card['id']
+                            }
+                        ]
+
+        #ret['results'] = results
+        ret['results'] = []
+
+        self.inline_response(ret)
+
+    def inline_response(self, ret):
+        if ret['inline_query_id'] == "-1": # for testing
+            self.response.write(urllib.urlencode(ret))
+        else:
+            resp = urllib2.urlopen(BASE_URL + 'answerInlineQuery', urllib.urlencode(ret)).read()
 
     def karta_command(self, params):
         self.card_command(params, locale="pl_PL")
